@@ -15,7 +15,7 @@ namespace IndyBooks.Controllers
         public WriterAPIController(IndyBooksDbContext db) { _db = db; }
 
         /**
-         * READ: Retrievs a collection of writers
+         * READ ALL: Retrievs a collection of writers
          * uses a GET verb with the URL pattern "api/writers"
          */
         [HttpGet]
@@ -31,10 +31,12 @@ namespace IndyBooks.Controllers
         public ActionResult Delete(long id)
         {
             //TODO: Search for record using Any(); if missing -> return NotFound();
-            if (!_db.Writers.Any(/* lambda expression */)) { return NotFound(); }
+            if (!_db.Writers.Any(w => w.Id == id /* lambda expression */)) { return NotFound(); }
 
             //TODO: Make changes to DbContext, save to Database -> return Accepted();
-
+            
+            _db.Writers.Remove(new Writer { Id = id });
+            _db.SaveChanges();
             return Accepted();
         }
         /**
@@ -45,25 +47,31 @@ namespace IndyBooks.Controllers
         public IActionResult Post([FromBody]Writer writer)
         {
             //TODO: Test for an invalid ModelState -> return BadRequest();
-
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             //TODO: Make changes to DbContext, save to Database -> return Accepted(writer);
-
+            _db.Writers.Add(writer);
+            _db.SaveChanges();
             return Accepted(writer);
 
         }
-        /**
-         * READ: Retrieves a particular writer with the given {id}
+        /*
+         * READ 1: Retrieves a particular writer with the given {id}
          * uses a GET verb with the URL pattern "api/writers/41"
          */
-        //[HttpGet("{id}")] //TODO: uncomment this annotation and create the method
+        [HttpGet("{id}")] //TODO: uncomment this annotation and create the method
+        public IActionResult Get(long id)
+        {
+            //TODO: Test for missing record using Any() -> return NotFound();
+            if (!_db.Writers.Any(w => w.Id == id /* lambda expression */)) { return NotFound(); }
 
-        //{
-        //TODO: Test for missing record using Any() -> return NotFound();
 
-
-        //TODO: Make changes to DbContext, save to Database -> return Ok(writer);
-        //}
+            //TODO: Make changes to DbContext, save to Database -> return Ok(writer);
+            return Ok(new Writer { Id = id });
+        }
 
         /** 
          * UPDATE: Modify a given writer with id and [FromBody]Writer writer parameters
